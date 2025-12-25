@@ -1,8 +1,12 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from predict import predict_category
+import pickle
 
-# Create API app
+# Load trained model
+with open("model/ticket_model.pkl", "rb") as f:
+    model = pickle.load(f)
+
+# FastAPI app
 app = FastAPI(title="Customer Support Ticket Auto-Triage")
 
 # Request format
@@ -18,5 +22,6 @@ def home():
 # Prediction endpoint
 @app.post("/predict")
 def predict(ticket: Ticket):
-    category = predict_category(ticket.subject, ticket.description)
-    return {"category": category}
+    text = ticket.subject + " " + ticket.description
+    prediction = model.predict([text])[0]
+    return {"category": prediction}
